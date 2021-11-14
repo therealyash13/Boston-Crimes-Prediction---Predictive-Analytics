@@ -1,0 +1,317 @@
+---
+title: "Group7_Arumugam_YashwanthBalan_Model2"
+author: "YASHWANTH BALAN ARUMUGAM"
+date: "29/10/2021"
+output:
+  html_document: default
+  word_document: default
+---
+Importing and Inspecting Dataset:
+  
+```{r}
+#Importing and Inspecting the Data
+data2 <- read.csv("D:/Yash-USA/Northeastern University/Applied Artificial Intelligence/Quarter-1/Predictive Analytics- ALY 6020/Project/Dataset/data2_Yash.csv")
+View(data2)
+```
+
+Data Cleaning and Preprocessing:
+  
+```{r}
+#Step1-Checking for NA values in the Dataset, if it finds replace with 0
+library(dplyr)
+data2$SHOOTING <- replace(data2$SHOOTING,is.na(data2$SHOOTING),0)
+```
+
+Converting Columns to Numerical Variables:
+  
+```{r}
+#Converting Column 'Shooting': Y-1 and N-0
+library(tidyverse)
+data2 = data2%>% mutate(SHOOTING = ifelse(SHOOTING == 'Y',1,0),
+                        SHOOTING = as.numeric(SHOOTING))
+View(data2)
+```
+
+```{r}
+library(dplyr)
+#Converting the Column 'Days_of_week' to its numeric value
+data2<-data2%>% mutate(DAY_OF_WEEK_NUM=DAY_OF_WEEK)
+data2$DAY_OF_WEEK_NUM <- recode(data2$DAY_OF_WEEK_NUM, 
+                                "Sunday"="0",
+                                "Monday"="1",
+                                "Tuesday"="2",
+                                "Wednesday"="3",
+                                "Thursday"="4",
+                                "Friday"="5",
+                                "Saturday"="6")
+```
+
+```{r}
+
+#Duplicating the column 'UCR_PART'
+data2<-data2%>% mutate(UCR_PART_NUM=UCR_PART)
+View(data2)
+
+
+#Now Converting UCR_PART Values to its Numeric Values
+data2$UCR_PART_NUM <- recode(data2$UCR_PART_NUM, 
+                             "Part One"="1",
+                             "Part Two"="2",
+                             "Part Three"="3",
+                             "Part Four"="4")
+View(data2)
+```
+
+Converting the Datatypes:
+  
+```{r}
+#Converting Data Types 
+str(data2)
+data2$UCR_PART_NUM <- replace(data2$UCR_PART_NUM,is.na(data2$UCR_PART_NUM),1)
+transform(data2,UCR_PART_NUM=as.numeric(UCR_PART_NUM))
+```
+
+Deleting the Unused Columns:
+  
+```{r}
+data2=data2 %>% select(-DISTRICT)
+data2=data2 %>% select(-STREET)
+data2=data2 %>% select(-INCIDENT_NUMBER)
+data2=data2 %>% select(-OFFENSE_CODE_GROUP)
+data2=data2 %>% select(-OCCURRED_ON_DATE)
+data2=data2 %>% select(-OFFENSE_CODE)
+data2=data2 %>% select(-UCR_PART)
+data2=data2 %>% select(-DAY_OF_WEEK)
+data2=data2 %>% select(-REPORTING_AREA)
+data2=data2 %>% select (-SHOOTING)
+data2=data2 %>% select (-Lat)
+data2=data2 %>% select (-Long)
+data2=data2 %>% select (-Location)
+
+View(data2)
+```
+
+Glimpse of New Data:
+  
+  ```{r}
+#Installing 'Tidyverse'
+library(tidyverse)
+#Having a glimpse of Dataset
+glimpse(data2)
+```
+
+```{r}
+#Converting Data Types:
+data2$HOUR<-as.numeric(data2$HOUR)
+data2$DAY_OF_WEEK_NUM<-as.numeric(data2$DAY_OF_WEEK_NUM)
+data2$UCR_PART_NUM<-as.numeric(data2$UCR_PART_NUM)
+str(data2)
+```
+
+Summary of New Data:
+  
+```{r}
+summary(data2)
+#Cleaning of dataset is done
+```
+
+Glipmse of My Data: data2:
+  
+```{r}
+#Import Necessary Libraries
+library(dplyr)
+glimpse(data2)
+```
+
+```{r}
+#Verifying continuous variables
+continous<-select_if(data2,is.numeric)
+summary(continous)
+```
+
+```{r}
+#compute the top 2 percent percentile
+top_one_percent <- quantile(data2$HOUR, .99)
+top_one_percent
+#Computed that 99% of the crimes happened at 23(11 PM)-Before
+
+```
+
+
+
+Model 2- Yashwanth Balan Arumugam Random Forest Model
+
+
+```{r}
+summary(data2)
+str(data2)
+head(data2)
+```
+
+Random Forest Split into Train and Testing Set Training Set : Testing Set = 70 : 30 (random)
+```{r}
+set.seed(12345)
+na.exclude(data2)
+data2<-as.data.frame(data2)
+train_rf <- sample(nrow(data2), 0.7*nrow(data2), replace = FALSE)
+TrainSet_rf <- data2[train_rf,]
+TrainSet_rf
+```
+
+Testing set of 30%
+```{r}
+testset_rf <- data2[-train_rf,]
+testset_rf
+summary(testset_rf)
+```
+
+```{r}
+# Create a Random Forest model with default parameters
+library(randomForest)
+model1 <- randomForest(HOUR ~ YEAR+MONTH+DAY_OF_WEEK_NUM+UCR_PART_NUM, data = TrainSet_rf,na.action=na.roughfix, ntree=500, importance=TRUE, do.trace=100)
+model1
+```
+
+Plotting Model-1
+```{r}
+plot(model1)
+```
+
+```{r}
+# Predicting on train set
+predTrain_rf <- predict(model1, TrainSet_rf, type = "class")
+head(predTrain_rf)
+```
+
+```{r}
+# Checking classification accuracy
+tab_class<-table(predTrain_rf, TrainSet_rf$HOUR)  
+head(tab_class)
+```
+
+```{r}
+# Predicting on Testing set
+predtest_rf <- predict(model1, testset_rf, type = "class")
+predtest_rf<-na.exclude(predtest_rf)
+max(predtest_rf)
+#Crimes Mostly to happen between 15 to 16 PM as per the Prediction
+```
+
+```{r}
+#Accuracy test on Test set
+test_error = mean((testset_rf$HOUR - predtest_rf)^2)
+print(paste(test_error))
+
+```
+
+Variable Importance plot of Model-1
+```{r}
+varImpPlot(model1)
+```
+
+# Split into Train and Validation sets
+
+# Training Set : Validation Set = 60 : 40 (random)
+
+```{r}
+set.seed(12345)
+na.exclude(data2)
+data2<-as.data.frame(data2)
+train_rf_1 <- sample(nrow(data2), 0.6*nrow(data2), replace = FALSE)
+TrainSet_rf_1 <- data2[train_rf_1,]
+TrainSet_rf_1
+```
+
+Testing Set of 40%
+```{r}
+testset_rf_1 <- data2[-train_rf_1,]
+testset_rf_1
+summary(testset_rf_1)
+```
+
+```{r}
+# Create a Random Forest model with default parameters
+library(randomForest)
+model2 <- randomForest(HOUR ~ YEAR+MONTH+DAY_OF_WEEK_NUM+UCR_PART_NUM, data = TrainSet_rf_1,na.action=na.roughfix, mtry=3, ntree=500, importance=TRUE, do.trace=100)
+model2
+
+
+```
+
+PLotting Model-2
+```{r}
+plot(model2)
+```
+
+```{r}
+# Predicting on Testing set
+predtest_rf_1 <- predict(model2, testset_rf_1, type = "class")
+predtest_rf_1<-na.exclude(predtest_rf_1)
+max(predtest_rf_1)
+#Crimes Mostly to happen between 15 to 16 PM as per the Prediction
+```
+
+
+```{r}
+#Accuracy test on Test set
+test_error_1 = mean((testset_rf_1$HOUR - predtest_rf_1)^2)
+test_error_1
+```
+Plotting varibale importance of MOdel-2
+```{r}
+varImpPlot(model2)
+```
+
+# Split into Train and Validation sets
+
+# Training Set : Validation Set = 85:15 (random)
+
+```{r}
+set.seed(12345)
+na.exclude(data2)
+data2<-as.data.frame(data2)
+train_rf_2 <- sample(nrow(data2), 0.85*nrow(data2), replace = FALSE)
+TrainSet_rf_2 <- data2[train_rf_2,]
+TrainSet_rf_2
+```
+
+#Creating the test set of 15%
+```{r}
+testset_rf_2 <- data2[-train_rf_2,]
+testset_rf_2
+summary(testset_rf_2)
+```
+
+```{r}
+# Create a Random Forest model with default parameters
+library(randomForest)
+model3 <- randomForest(HOUR ~., data = TrainSet_rf_2,na.action=na.roughfix, ntree=500, importance=TRUE, do.trace=100)
+model3
+
+```
+
+#PLotting Model-3
+```{r}
+plot(model3)
+```
+
+```{r}
+# Predicting on Testing set
+predtest_rf_2 <- predict(model3, testset_rf_2, type = "class")
+predtest_rf_2<-na.exclude(predtest_rf_2)
+max(predtest_rf_2)
+#Crimes Mostly to happen between 15 to 16 PM as per the Prediction
+```
+
+```{r}
+#Accuracy test on Test set
+test_error_2 = mean((testset_rf_2$HOUR - predtest_rf_2)^2)
+test_error_2
+
+```
+
+PLotting the Variable Importance of Model-3
+```{r}
+varImpPlot(model3)
+```
+

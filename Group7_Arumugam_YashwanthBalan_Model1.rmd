@@ -1,0 +1,492 @@
+---
+title: "ALY 6020-YashM2"
+author: "YASHWANTH BALAN ARUMUGAM"
+date: "22/10/2021"
+output:
+  word_document: default
+
+---
+
+Importing and Inspecting Dataset:
+
+```{r}
+#Importing and Inspecting the Data
+data2 <- read.csv("D:/Yash-USA/Northeastern University/Applied Artificial Intelligence/Quarter-1/Predictive Analytics- ALY 6020/Project/Dataset/data2_Yash.csv")
+View(data2)
+```
+
+Data Cleaning and Preprocessing:
+
+```{r}
+#Step1-Checking for NA values in the Dataset, if it finds replace with 0
+library(dplyr)
+data2$SHOOTING <- replace(data2$SHOOTING,is.na(data2$SHOOTING),0)
+```
+
+Converting Columns to Numerical Variables:
+
+```{r}
+#Converting Column 'Shooting': Y-1 and N-0
+library(tidyverse)
+data2 = data2%>% mutate(SHOOTING = ifelse(SHOOTING == 'Y',1,0),
+                                              SHOOTING = as.numeric(SHOOTING))
+View(data2)
+```
+
+```{r}
+library(dplyr)
+#Converting the Column 'Days_of_week' to its numeric value
+data2<-data2%>% mutate(DAY_OF_WEEK_NUM=DAY_OF_WEEK)
+data2$DAY_OF_WEEK_NUM <- recode(data2$DAY_OF_WEEK_NUM, 
+                                       "Sunday"="0",
+                                       "Monday"="1",
+                                       "Tuesday"="2",
+                                       "Wednesday"="3",
+                                       "Thursday"="4",
+                                       "Friday"="5",
+                                       "Saturday"="6")
+```
+
+```{r}
+
+#Duplicating the column 'UCR_PART'
+data2<-data2%>% mutate(UCR_PART_NUM=UCR_PART)
+View(data2)
+
+
+#Now Converting UCR_PART Values to its Numeric Values
+data2$UCR_PART_NUM <- recode(data2$UCR_PART_NUM, 
+                                       "Part One"="1",
+                                       "Part Two"="2",
+                                       "Part Three"="3",
+                                       "Part Four"="4")
+View(data2)
+```
+
+Converting the Datatypes:
+
+```{r}
+#Converting Data Types 
+str(data2)
+data2$UCR_PART_NUM <- replace(data2$UCR_PART_NUM,is.na(data2$UCR_PART_NUM),1)
+transform(data2,UCR_PART_NUM=as.numeric(UCR_PART_NUM))
+```
+
+Deleting the Unused Columns:
+
+```{r}
+data2=data2 %>% select(-DISTRICT)
+data2=data2 %>% select(-STREET)
+data2=data2 %>% select(-INCIDENT_NUMBER)
+data2=data2 %>% select(-OFFENSE_CODE_GROUP)
+data2=data2 %>% select(-OCCURRED_ON_DATE)
+data2=data2 %>% select(-OFFENSE_CODE)
+data2=data2 %>% select(-UCR_PART)
+data2=data2 %>% select(-DAY_OF_WEEK)
+data2=data2 %>% select(-REPORTING_AREA)
+data2=data2 %>% select (-SHOOTING)
+data2=data2 %>% select (-Location)
+
+View(data2)
+```
+
+Glimpse of New Data:
+
+```{r}
+#Installing 'Tidyverse'
+library(tidyverse)
+#Having a glimpse of Dataset
+glimpse(data2)
+```
+
+```{r}
+#Converting Data Types:
+data2$HOUR<-as.numeric(data2$HOUR)
+data2$DAY_OF_WEEK_NUM<-as.numeric(data2$DAY_OF_WEEK_NUM)
+data2$UCR_PART_NUM<-as.numeric(data2$UCR_PART_NUM)
+str(data2)
+```
+
+Summary of New Data:
+
+```{r}
+summary(data2)
+#Cleaning of dataset is done
+```
+
+Glipmse of My Data: data2:
+
+```{r}
+#Import Necessary Libraries
+library(dplyr)
+glimpse(data2)
+```
+
+```{r}
+#Verifying continuous variables
+continous<-select_if(data2,is.numeric)
+summary(continous)
+```
+
+```{r}
+#compute the top 2 percent percentile
+top_one_percent <- quantile(data2$HOUR, .99)
+top_one_percent
+#Computed that 99% of the crimes happened at 23(11 PM)-Before
+
+```
+
+```{r}
+#_______________________________________________________________________________
+#Creating a dataframe
+df_data2<- data.frame(data2)
+df_data2
+```
+
+Creating Cateogorical Variables
+
+```{r}
+#Creating Categorical Variables
+#Converting to Categorical Variables of 'HOUR'
+df_data2$HOUR <- as.factor(df_data2$HOUR)
+str(df_data2)
+```
+
+```{r}
+#Converting to Categorical Variables of 'DAYS_OF_WEEK_NUM'
+df_data2$DAY_OF_WEEK_NUM <- as.factor(df_data2$DAY_OF_WEEK_NUM)
+str(df_data2)
+```
+
+```{r}
+#Converting to Categorical Variables of 'YEAR'
+df_data2$YEAR <- as.factor(df_data2$DAY_OF_WEEK_NUM)
+str(df_data2)
+```
+
+```{r}
+#Converting to Categorical Variables of 'MONTH'
+df_data2$MONTH <- as.factor(df_data2$MONTH)
+str(df_data2)
+```
+
+```{r}
+#Converting to Categorical Variables of 'UCR_PART_NUM'
+df_data2$UCR_PART_NUM <- as.factor(df_data2$UCR_PART_NUM)
+str(df_data2)
+```
+
+```{r}
+#Standardize the continuous variables
+data_standard <- df_data2%>%mutate_if(is.numeric, funs(as.numeric(scale(.))))
+head(data2)
+```
+
+```{r}
+#Converting to Categorical Variables of 'UCR_PART_NUM'
+#Check factor variables
+# Select categorical column
+factor <- data.frame(select_if(df_data2, is.factor))
+ncol(factor)
+#The dataset contains 4 categorical variables
+
+```
+
+Data Visualization:
+
+```{r}
+#Factor Visualization
+library(ggplot2)
+# Create graph for each column
+graph <- lapply(names(factor),
+                function(x) 
+                  ggplot(factor, aes(get(x))) +
+                  geom_bar() +
+                  theme(axis.text.x = element_text(angle = 90)))
+
+graph
+```
+
+```{r}
+#Data Visualization
+#Summary Statistic
+table(data2$HOUR)
+#Plot 'Hourly' Stats with 'DAY_OF_WEEK'
+ggplot(data2, aes(x = DAY_OF_WEEK_NUM, fill = HOUR )) +
+  geom_bar(position = "fill") +
+  theme_classic()
+```
+
+```{r}
+#Plot 'Hourly' Stats with 'UCR_PART_NUM'
+ggplot(df_data2, aes(x = UCR_PART_NUM, fill = HOUR)) +
+  geom_bar(position = "fill") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+# box plot area with hour
+ggplot(data2, aes(x = DAY_OF_WEEK_NUM, y = HOUR,group="HOUR")) +
+  geom_boxplot() +
+  stat_summary(fun = mean,
+               geom = "point",
+               size = 3,
+               color = "red") +
+  theme_classic()
+```
+
+```{r}
+#Non-linearity of the DATASET with Days_of_week and Hour
+ggplot(data2, aes(x = DAY_OF_WEEK_NUM, y = HOUR)) +
+  geom_point(aes(color = DAY_OF_WEEK_NUM),
+             size = 0.5) +
+  stat_smooth(method = 'lm',
+              formula = y~poly(x, 2),
+              se = TRUE,
+              aes(color = DAY_OF_WEEK_NUM)) +
+  theme_classic()
+
+
+```
+
+```{r}
+hist(data2$HOUR,xlab = "HOUR of Crimes", col = c("cyan", "yellow", "pink", "green"), border = "red",main = "HOUR of Crimes happened in Boston")
+```
+
+
+Model-1 GLM-Yashwanth_Balan_Arumugam Training and Testing Ratio 70/30-Ratio-1
+
+```{r}
+#Training and Testing Data
+#Any supervised machine learning task require to split the data between a train set and a test set. You can use the "function" you created in the other supervised learning tutorials to create a train/test set.
+#Training and Testing Ratio 70/30-Ratio-1
+set.seed(1234)
+train_set<- function(data2, size = 0.7, train = TRUE) {
+  n_row = nrow(data2)
+  total_row = size * n_row
+ train_sample <- 1: total_row
+  if (train == TRUE) {
+    return (data2[train_sample, ])
+  } else {
+    return (data2[-train_sample, ])
+  }
+} 
+data_train <- train_set(data2, 0.7, train = TRUE)
+data_test <- train_set(data2, 0.7, train = FALSE)
+dim(data_train)
+dim(data_test)
+```
+
+```{r}
+
+lapply(data2[c("HOUR", "DAY_OF_WEEK_NUM","UCR_PART_NUM","YEAR","MONTH","Lat","Long")], unique)
+
+```
+
+```{r}
+#The set ratio of Logit >< Ratio 1
+#Building GLM Model
+formula<-HOUR~.
+Logit <- glm(formula, data = data_train,family = 'gaussian')
+summary(Logit)
+lapply(Logit,class)[1:5]
+Logit$aic 
+```
+
+```{r}
+#Assess the performance of the model
+#Confusion Matrix
+predict <- predict(Logit, data_test, type = 'response')
+predict[1:5]
+print(max(predict)) 
+```
+
+```{r}
+# confusion matrix
+table_mat<-table(data2$HOUR)
+table_mat
+print(max(table_mat))
+
+```
+
+```{r}
+max_time<-(which.max(table_mat))
+print(paste("The Time when most of the crimes that happen in Boston city is",max_time,"PM"))
+```
+
+```{r}
+#Prediction Result
+#18-6.00 PM
+#MSE
+mse<-mean(Logit$residuals^2) 
+print(paste("MSE for test ratio 1:",mse))
+```
+
+```{r}
+#RMSE
+rmse<-sqrt(mean(Logit$residuals^2))
+print(paste("RMSE for test ratio 1:",rmse))
+```
+
+```{r}
+#______________________________________________________________________________________________________
+
+#The set ratio of Logit1 >< Ratio 1
+#Model Accuracy
+accuracy_test<-sum(diag(table_mat))/sum(table_mat)
+accuracy_test
+print(paste("The accuracy of the model is",(accuracy_test))) 
+```
+
+Training and Testing Ratio 60/40-Ratio-2
+
+```{r}
+
+#_______________________________________________________________________________
+
+#Training and Testing Ratio 60/40-Ratio-2
+set.seed(1234)
+train_set<- function(data2, size = 0.6, train = TRUE) {
+  n_row = nrow(data2)
+  total_row = size * n_row
+  train_sample <- 1: total_row
+  if (train == TRUE) {
+    return (data2[train_sample, ])
+  } else {
+    return (data2[-train_sample, ])
+  }
+} 
+data_train <- train_set(data2, 0.6, train = TRUE)
+data_test <- train_set(data2, 0.6, train = FALSE)
+dim(data_train)
+dim(data_test)
+```
+
+```{r}
+#Building GLM Model
+formula<-HOUR~.
+Logit1 <- glm(formula, data = data_train,family = 'gaussian')
+summary(Logit1)
+lapply(Logit1,class)[1:5]
+Logit1$aic #31850
+```
+
+```{r}
+#Assess the performance of the model
+#Confusion Matrix
+predict1 <- predict(Logit1,data_test, type = 'response')
+print(predict1[1:5])
+```
+
+```{r}
+# confusion matrix
+table_mat_1<-table(data2$HOUR)
+print(table_mat_1)
+max_time_1<-(which.max(table_mat_1))
+max_time_1
+```
+
+```{r}
+print(paste("The Time when most of the crimes that happen in Boston city is",max_time_1,"PM"))
+#Prediction Result
+#18-6.00 PM
+```
+
+```{r}
+#MSE
+mse1<-mean(Logit1$residuals^2) 
+print(paste("MSE for test ratio 2:",mse1))
+
+```
+
+```{r}
+#RMSE
+rmse1<-sqrt(mean(Logit1$residuals^2)) 
+print(paste("RMSE for test ratio 2:",rmse1))
+
+```
+
+```{r}
+#Model Accuracy
+accuracy_test_1<-sum(diag(table_mat))/sum(table_mat)
+accuracy_test_1
+print(paste("The accuracy of the model is",(accuracy_test_1))) #This model has 100% accuracy
+```
+
+Training and Testing Ratio 80/20-Ratio-3
+
+```{r}
+#______________________________________________________________________________________________________
+#The set ratio of Logit1 >< Ratio 3
+#Training and Testing Ratio 80/20-Ratio-3
+set.seed(1234)
+train_set<- function(data2, size = 0.8, train = TRUE) {
+  n_row = nrow(data2)
+  total_row = size * n_row
+  train_sample <- 1: total_row
+  if (train == TRUE) {
+    return (data2[train_sample, ])
+  } else {
+    return (data2[-train_sample, ])
+  }
+} 
+data_train <- train_set(data2, 0.8, train = TRUE)
+data_test <- train_set(data2, 0.8, train = FALSE)
+dim(data_train)
+dim(data_test)
+```
+
+```{r}
+#Building GLM Model
+formula<-HOUR~.
+Logit2 <- glm(formula, data = data_train,family = 'gaussian')
+summary(Logit2)
+lapply(Logit2,class)[1:5]
+Logit2$aic #687309
+```
+
+```{r}
+#Assess the performance of the model
+#Confusion Matrix
+predict2 <- predict(Logit2,data_test, type = 'response')
+predict2[1:5]
+print(max(predict2)) #95% Prediction works
+```
+
+```{r}
+# confusion matrix
+table_mat_2<-table(data2$HOUR)
+print(table_mat_2)
+print(max(table_mat_2))
+```
+
+```{r}
+max_time_2<-(which.max(table_mat_2))
+print(paste("The Time when most of the crimes that happen in Boston city is",max_time_2,"PM"))
+#Prediction Result
+#18-6.00 PM
+```
+
+```{r}
+#Model Accuracy
+accuracy_test_2<-sum(diag(table_mat))/sum(table_mat)
+accuracy_test_2
+print(paste("The accuracy of the model is",(accuracy_test_2))) #This model has 100% accuracy
+```
+
+```{r}
+#MSE
+mse2<-mean(Logit2$residuals^2) #  39.470217800054
+print(paste("MSE for ratio 3:",mse2))
+```
+
+```{r}
+#RMSE
+rmse2<-sqrt(mean(Logit2$residuals^2)) #  6.28253275359978
+print(paste("RMSE for ratio3 :",rmse2))
+```
+
+
+
+
